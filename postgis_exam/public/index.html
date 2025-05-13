@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <title>GeoSalud - Plataforma de Análisis Geoespacial Sanitario</title>
+
+    <!-- Leaflet CSS -->
+    <!-- CSS de Leaflet -->
+    +
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.7.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.7.1/dist/MarkerCluster.Default.css" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Panel -->
+            <div class="col-md-3 sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-hospital"></i> GeoSalud</h3>
+                    <p class="text-muted">Plataforma de Análisis Geoespacial Sanitario</p>
+                </div>
+
+                <div class="accordion" id="filterAccordion">
+                    <!-- Filtros por tipo de centro -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Filtrar por Tipo de Centro
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne">
+                            <div class="accordion-body">
+                                <div id="tiposCentroContainer">
+                                    <!-- Los tipos se cargarán dinámicamente -->
+                                    <div class="form-check">
+                                        <input class="form-check-input tipo-check" type="checkbox" value="Hospital"
+                                            id="tipoHospital" checked>
+                                        <label class="form-check-label" for="tipoHospital">
+                                            <span class="legend-color hospital"></span>Hospital
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input tipo-check" type="checkbox"
+                                            value="Centro de Salud Primaria" id="tipoCentroSalud" checked>
+                                        <label class="form-check-label" for="tipoCentroSalud">
+                                            <span class="legend-color centro-salud"></span>Centro de Salud Primaria
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input tipo-check" type="checkbox"
+                                            value="Clínica Privada" id="tipoClinica" checked>
+                                        <label class="form-check-label" for="tipoClinica">
+                                            <span class="legend-color clinica"></span>Clínica Privada
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input tipo-check" type="checkbox" value="Farmacia"
+                                            id="tipoFarmacia" checked>
+                                        <label class="form-check-label" for="tipoFarmacia">
+                                            <span class="legend-color farmacia"></span>Farmacia
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input tipo-check" type="checkbox"
+                                            value="Centro de Urgencias" id="tipoUrgencias" checked>
+                                        <label class="form-check-label" for="tipoUrgencias">
+                                            <span class="legend-color urgencias"></span>Centro de Urgencias
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros por nivel de riesgo -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Filtrar por Nivel de Riesgo
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo">
+                            <div class="accordion-body">
+                                <div id="nivelesRiesgoContainer">
+                                    <!-- Los niveles se cargarán dinámicamente -->
+                                    <div class="form-check">
+                                        <input class="form-check-input riesgo-check" type="checkbox" value="Bajo"
+                                            id="riesgoBajo" checked>
+                                        <label class="form-check-label" for="riesgoBajo">
+                                            <span class="polygon-color riesgo-bajo"></span>Riesgo Bajo
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input riesgo-check" type="checkbox" value="Medio"
+                                            id="riesgoMedio" checked>
+                                        <label class="form-check-label" for="riesgoMedio">
+                                            <span class="polygon-color riesgo-medio"></span>Riesgo Medio
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input riesgo-check" type="checkbox" value="Alto"
+                                            id="riesgoAlto" checked>
+                                        <label class="form-check-label" for="riesgoAlto">
+                                            <span class="polygon-color riesgo-alto"></span>Riesgo Alto
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros por estado del centro -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Filtrar por Estado del Centro
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree">
+                            <div class="accordion-body">
+                                <div id="estadoCentroContainer">
+                                    <!-- Los estados se cargarán dinámicamente -->
+                                    <div class="form-check">
+                                        <input class="form-check-input estado-check" type="checkbox" value="Operativo"
+                                            id="estadoOperativo" checked>
+                                        <label class="form-check-label" for="estadoOperativo">
+                                            <i class="fas fa-check-circle text-success"></i> Operativo
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input estado-check" type="checkbox"
+                                            value="En renovación" id="estadoRenovacion" checked>
+                                        <label class="form-check-label" for="estadoRenovacion">
+                                            <i class="fas fa-tools text-warning"></i> En renovación
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input estado-check" type="checkbox"
+                                            value="Cerrado temporalmente" id="estadoCerrado" checked>
+                                        <label class="form-check-label" for="estadoCerrado">
+                                            <i class="fas fa-ban text-danger"></i> Cerrado temporalmente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón para aplicar filtros -->
+                <div class="mt-3">
+                    <button id="applyFiltersBtn" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-filter"></i> Aplicar Filtros
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <button id="loadZonas" class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-layer-group"></i> Cargar Zonas
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <button id="clearZonas" class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-trash-alt"></i> Quitar Zonas
+                    </button>
+                </div>
+
+                <!-- Herramientas de análisis -->
+                <div class="tools-container mt-4">
+                    <h5><i class="fas fa-tools"></i> Herramientas de Análisis</h5>
+
+                    <div class="d-grid gap-2">
+                        <button id="bufferToolBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-circle"></i> Crear Buffer
+                        </button>
+
+                        <div id="bufferControls" class="buffer-control" style="display: none;">
+                            <label for="bufferRadius" class="form-label">Radio del buffer (km): <span
+                                    id="bufferRadiusValue">5</span></label>
+                            <input type="range" class="form-range" min="1" max="20" step="1" value="5"
+                                id="bufferRadius">
+                        </div>
+
+                        <button id="measuringToolBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-ruler"></i> Medir distancia
+                        </button>
+
+                        <button id="centerCountBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-calculator"></i> Contar centros por zona
+                        </button>
+
+                        <button id="centroidsBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-crosshairs"></i> Calcular centroides
+                        </button>
+
+                        <button id="neighborRadiusBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-users"></i> Vecinos en radio
+                        </button>
+
+                        <div id="neighborControls" class="buffer-control" style="display: none;">
+                            <label for="neighborRadius" class="form-label">Radio de búsqueda (km): <span
+                                    id="neighborRadiusValue">2</span></label>
+                            <input type="range" class="form-range" min="0.5" max="10" step="0.5" value="2"
+                                id="neighborRadius">
+                        </div>
+
+                        <button id="intersectionBtn" class="btn btn-sm btn-outline-primary mb-2">
+                            <i class="fas fa-object-group"></i> Intersección de zonas
+                        </button>
+
+                        <button id="clearAnalysisBtn" class="btn btn-sm btn-danger mb-2">
+                            <i class="fas fa-trash"></i> Limpiar análisis
+                        </button>
+                    </div>
+
+                    <div id="analysisResults" class="analysis-results mt-3">
+                        <h6>Resultados del análisis:</h6>
+                        <div id="resultContent">
+                            Selecciona una herramienta para ver resultados.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="col-md-9 p-0 map-container">
+                <div id="map"></div>
+
+                <!-- Leyenda del mapa -->
+                <div class="legend">
+                    <h6><i class="fas fa-list"></i> Leyenda</h6>
+                    <div class="legend-content">
+                        <div class="legend-section">
+                            <p class="mb-1"><strong>Tipos de centros:</strong></p>
+                            <div class="legend-item">
+                                <span class="legend-color hospital"></span>Hospital
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color centro-salud"></span>Centro de Salud
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color clinica"></span>Clínica
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color farmacia"></span>Farmacia
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color urgencias"></span>Centro de Urgencias
+                            </div>
+                        </div>
+                        <div class="legend-section mt-2">
+                            <p class="mb-1"><strong>Niveles de riesgo:</strong></p>
+                            <div class="legend-item">
+                                <span class="polygon-color riesgo-bajo"></span>Bajo
+                            </div>
+                            <div class="legend-item">
+                                <span class="polygon-color riesgo-medio"></span>Medio
+                            </div>
+                            <div class="legend-item">
+                                <span class="polygon-color riesgo-alto"></span>Alto
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <!-- MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Turf.js -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Variables globales para almacenar datos y capas
+        let map = null;
+        let zonasLayer = null;
+        let centrosLayer = null;
+        let zonasData = null;
+        let centrosData = null;
+
+        // Inicializar componentes cuando el DOM esté listo
+        function initMap() {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Inicializar el mapa
+                map = L.map('map').setView([40.416775, -3.703790], 6);
+
+                // Agregar capa base de OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Configurar clúster de marcadores para centros de salud
+                centrosLayer = L.markerClusterGroup({
+                    chunkedLoading: true,
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false,
+                    zoomToBoundsOnClick: true
+                }).addTo(map);
+
+                // Cargar datos iniciales
+                loadCentros();
+
+                zonasLayer = L.geoJSON(null).addTo(map);
+
+                loadCentros();
+
+                // Configurar eventos para filtros y botones
+                setupEventListeners();
+            })
+        };
+
+        // Función para obtener iconos personalizados según el tipo de centro
+        function getMarkerIcon(tipo) {
+            let color, iconClass;
+
+            switch (tipo) {
+                case 'Hospital':
+                    color = '#e74c3c';
+                    iconClass = 'fa-hospital';
+                    break;
+                case 'Centro de Salud Primaria':
+                case 'Centro de Salud Familiar':
+                    color = '#3498db';
+                    iconClass = 'fa-user-md';
+                    break;
+                case 'Clínica Privada':
+                    color = '#9b59b6';
+                    iconClass = 'fa-clinic-medical';
+                    break;
+                case 'Farmacia':
+                    color = '#2ecc71';
+                    iconClass = 'fa-prescription-bottle-alt';
+                    break;
+                case 'Centro de Urgencias':
+                    color = '#f39c12';
+                    iconClass = 'fa-ambulance';
+                    break;
+                default:
+                    color = '#95a5a6';
+                    iconClass = 'fa-plus-square';
+            }
+
+            return L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas ${iconClass}" style="color: white;"></i>
+                </div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+        }
+
+        // Función para cargar centros de salud
+        async function loadCentros() {
+            try {
+                const response = await fetch('http://localhost:4000/api/centros');
+                centrosData = await response.json();
+
+                // Mostrar mensaje en la sección de resultados
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="alert alert-info">
+                        Cargados ${centrosData.features.length} centros de salud.
+                    </div>
+                `;
+
+                // Aplicar filtros iniciales
+                applyFilters();
+
+            } catch (error) {
+                console.error("Error al cargar centros:", error);
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-danger">
+                Error al cargar centros de salud: ${error.message}
+            </div>
+        `;
+            }
+        }
+
+        // Función para cargar zonas sanitarias
+        async function loadZonas() {
+            // Mostrar indicador de carga
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando zonas sanitarias...
+                </div>
+            `;
+
+            // Eliminar capa anterior si existe
+            if (zonasLayer) {
+                map.removeLayer(zonasLayer);
+                zonasLayer = null;
+            }
+
+            // Cargar datos desde el servidor
+            const response = await fetch('http://localhost:4000/api/zonas');
+            zonasData = await response.json();
+
+            // Aplicar filtros y crear capa
+            applyZonasFilter();
+
+            // Ajustar vista al mapa para ver todas las zonas
+            if (zonasLayer && zonasLayer.getBounds().isValid()) {
+                map.fitBounds(zonasLayer.getBounds(), { padding: [50, 50] });
+            }
+
+            // Actualizar mensaje de resultados
+            updateResultsMessage();
+        }
+
+        function clearZonas() {
+            if (zonasLayer) {
+                map.removeLayer(zonasLayer); // Eliminar la capa de zonas del mapa
+                zonasLayer = null; // Resetear la variable
+            }
+
+            // Actualizar el mensaje de resultados
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Las zonas de riesgo han sido eliminadas del mapa.
+                </div>
+            `;
+        }
+
+        // Función para aplicar filtros a las zonas
+        function applyZonasFilter() {
+            if (!zonasData || zonasData.features.length === 0) {
+                return; // No hay datos para filtrar
+            }
+
+            // Obtener filtros seleccionados
+            const riesgosSeleccionados = Array.from(document.querySelectorAll('.riesgo-check:checked'))
+                .map(el => el.value);
+
+            // Filtrar los datos GeoJSON según nivel de riesgo
+            const zonasFiltered = {
+                type: 'FeatureCollection',
+                features: zonasData.features.filter(feature =>
+                    riesgosSeleccionados.includes(feature.properties.nivel_riesgo)
+                )
+            };
+
+            // Eliminar capa anterior si existe
+            if (zonasLayer) {
+                map.removeLayer(zonasLayer);
+            }
+
+            // Crear nueva capa con datos filtrados
+            zonasLayer = L.geoJSON(zonasFiltered, {
+                style: getZonaStyle,
+                onEachFeature: bindZonaPopup
+            }).addTo(map);
+
+            // Log para depuración
+            console.log(`Zonas filtradas: ${zonasFiltered.features.length} de ${zonasData.features.length}`);
+        }
+
+        // Función para aplicar estilo a las zonas según su nivel de riesgo
+        function getZonaStyle(feature) {
+            let fillColor, borderColor;
+
+            switch (feature.properties.nivel_riesgo) {
+                case 'Bajo':
+                    fillColor = 'rgba(46, 204, 113, 0.3)';
+                    borderColor = 'rgb(46, 204, 113)';
+                    break;
+                case 'Medio':
+                    fillColor = 'rgba(243, 156, 18, 0.3)';
+                    borderColor = 'rgb(243, 156, 18)';
+                    break;
+                case 'Alto':
+                    fillColor = 'rgba(231, 76, 60, 0.3)';
+                    borderColor = 'rgb(231, 76, 60)';
+                    break;
+                default:
+                    fillColor = 'rgba(52, 152, 219, 0.3)';
+                    borderColor = 'rgb(52, 152, 219)';
+            }
+
+            return {
+                fillColor: fillColor,
+                color: borderColor,
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.7
+            };
+        }
+
+        // Función para vincular popups a cada zona
+        function bindZonaPopup(feature, layer) {
+            if (feature.properties) {
+                const poblacion = feature.properties.poblacion_estimada
+                    ? feature.properties.poblacion_estimada.toLocaleString()
+                    : 'No disponible';
+
+                let popupContent = `
+                    <div class="popup-title">${feature.properties.nombre}</div>
+                    <div class="popup-content">
+                        <p><strong>Autoridad:</strong> ${feature.properties.autoridad_sanitaria}</p>
+                        <p><strong>Nivel de riesgo:</strong> ${feature.properties.nivel_riesgo}</p>
+                        <p><strong>Población:</strong> ${poblacion} habitantes</p>
+                        <p><strong>Superficie:</strong> ${feature.properties.superficie_km2 || 'No disponible'} km²</p>
+                    </div>
+                `;
+                layer.bindPopup(popupContent);
+            }
+        }
+
+        // Función para aplicar filtros a centros de salud
+        function applyCentrosFilter() {
+            if (!centrosData || centrosData.features.length === 0) {
+                return; // No hay datos para filtrar
+            }
+
+            // Obtener filtros seleccionados
+            const tiposSeleccionados = Array.from(document.querySelectorAll('.tipo-check:checked')).map(el => el.value);
+            const estadosSeleccionados = Array.from(document.querySelectorAll('.estado-check:checked')).map(el => el.value);
+
+            // Limpiar capa actual
+            centrosLayer.clearLayers();
+
+            // Filtrar centros y añadirlos al mapa
+            const filteredCentros = centrosData.features.filter(feature =>
+                tiposSeleccionados.includes(feature.properties.tipo) &&
+                estadosSeleccionados.includes(feature.properties.estado)
+            );
+
+            filteredCentros.forEach(feature => {
+                const marker = L.marker([
+                    feature.geometry.coordinates[1],
+                    feature.geometry.coordinates[0]
+                ], {
+                    icon: getMarkerIcon(feature.properties.tipo)
+                }).bindPopup(`
+            <div class="popup-title">${feature.properties.nombre}</div>
+            <div class="popup-content">
+                <p><strong>Tipo:</strong> ${feature.properties.tipo}</p>
+                <p><strong>Estado:</strong> ${feature.properties.estado}</p>
+            </div>
+        `);
+
+                centrosLayer.addLayer(marker);
+            });
+
+            // Log para depuración
+            console.log(`Centros filtrados: ${filteredCentros.length} de ${centrosData.features.length}`);
+        }
+
+        // Función para aplicar todos los filtros
+        function applyFilters() {
+            applyCentrosFilter();
+            applyZonasFilter();
+            updateResultsMessage();
+        }
+
+        // Actualizar mensaje de resultados
+        function updateResultsMessage() {
+            const numCentros = centrosLayer ? centrosLayer.getLayers().length : 0;
+            const numZonas = zonasLayer ? zonasLayer.getLayers().length : 0;
+
+            document.getElementById('resultContent').innerHTML = `
+        <div class="alert alert-info">
+            Mostrando ${numCentros} centros de salud en ${numZonas} zonas sanitarias.
+        </div>
+    `;
+        }
+
+        // Configurar todos los event listeners
+        function setupEventListeners() {
+            // Evento para cargar zonas
+            document.getElementById('loadZonas').addEventListener('click', loadZonas);
+
+            // Evento para aplicar filtros
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+
+            // Eventos para cambios en checkboxes de filtros
+            document.querySelectorAll('.riesgo-check').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Solo aplicar filtro de zonas si ya existen datos
+                    if (zonasData) {
+                        applyZonasFilter();
+                        updateResultsMessage();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.tipo-check, .estado-check').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Solo aplicar filtro de centros si ya existen datos
+                    if (centrosData) {
+                        applyCentrosFilter();
+                        updateResultsMessage();
+                    }
+                });
+            });
+
+            // Evento para limpiar análisis
+            document.getElementById('clearAnalysisBtn').addEventListener('click', () => {
+                // Limpiar capas de análisis pero mantener filtros
+                if (zonasLayer) {
+                    applyZonasFilter(); // Recargar zonas con filtros actuales
+                }
+
+                updateResultsMessage();
+            });
+        }
+
+        // Variables globales adicionales para herramientas de análisis
+        let drawingMode = false;
+        let measureLineLayer = null;
+        let bufferLayer = null;
+        let bufferSource = null;  // Para guardar el punto central del buffer
+        let neighborRadiusLayer = null;
+        let selectedMarker = null;
+        let analysisLayers = [];  // Para mantener las capas de análisis
+
+        // Configurar todos los event listeners
+        function setupEventListeners() {
+            // Evento para cargar zonas
+            document.getElementById('loadZonas').addEventListener('click', loadZonas);
+
+            //Evento para limpiar zonas
+            document.getElementById('clearZonas').addEventListener('click', clearZonas);
+
+            // Evento para aplicar filtros
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+
+            // Eventos para cambios en checkboxes de filtros
+            document.querySelectorAll('.riesgo-check').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Solo aplicar filtro de zonas si ya existen datos
+                    if (zonasData) {
+                        applyZonasFilter();
+                        updateResultsMessage();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.tipo-check, .estado-check').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Solo aplicar filtro de centros si ya existen datos
+                    if (centrosData) {
+                        applyCentrosFilter();
+                        updateResultsMessage();
+                    }
+                });
+            });
+
+            // Evento para limpiar análisis
+            document.getElementById('clearAnalysisBtn').addEventListener('click', clearAnalysis);
+
+            // Configurar eventos para herramientas de análisis
+            document.getElementById('bufferToolBtn').addEventListener('click', toggleBufferTool);
+            document.getElementById('bufferRadius').addEventListener('input', updateBufferRadiusValue);
+            document.getElementById('measuringToolBtn').addEventListener('click', toggleMeasuringTool);
+            document.getElementById('centerCountBtn').addEventListener('click', countCentersByZone);
+            document.getElementById('centroidsBtn').addEventListener('click', calculateCentroids);
+            document.getElementById('neighborRadiusBtn').addEventListener('click', toggleNeighborTool);
+            document.getElementById('neighborRadius').addEventListener('input', updateNeighborRadiusValue);
+            document.getElementById('intersectionBtn').addEventListener('click', findZoneIntersections);
+        }
+
+        // ----- Herramienta de Buffer -----
+
+        // Función para mostrar/ocultar controles de buffer
+        function toggleBufferTool() {
+            const bufferControls = document.getElementById('bufferControls');
+            const isVisible = bufferControls.style.display !== 'none';
+
+            // Si estábamos en otro modo, salir primero
+            exitAllTools();
+
+            if (!isVisible) {
+                bufferControls.style.display = 'block';
+                document.getElementById('bufferToolBtn').classList.add('active');
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Haz clic en cualquier punto del mapa para crear un buffer.
+            </div>
+        `;
+
+                // Activar modo de dibujo para buffer
+                drawingMode = 'buffer';
+                map.on('click', createBuffer);
+            } else {
+                bufferControls.style.display = 'none';
+                document.getElementById('bufferToolBtn').classList.remove('active');
+                drawingMode = false;
+                map.off('click', createBuffer);
+            }
+        }
+
+        // Actualizar el valor mostrado del radio del buffer
+        function updateBufferRadiusValue() {
+            const radius = document.getElementById('bufferRadius').value;
+            document.getElementById('bufferRadiusValue').textContent = radius;
+
+            // Si ya hay un buffer, actualizarlo
+            if (bufferSource && bufferLayer) {
+                map.removeLayer(bufferLayer);
+                createBufferFromPoint(bufferSource, radius);
+            }
+        }
+
+        // Crear buffer cuando se hace clic en el mapa
+        function createBuffer(e) {
+            const radius = parseFloat(document.getElementById('bufferRadius').value);
+            const latlng = e.latlng;
+
+            // Guardar el punto central para actualizaciones del radio
+            bufferSource = [latlng.lng, latlng.lat];
+
+            createBufferFromPoint(bufferSource, radius);
+        }
+
+        // Crear buffer desde un punto y radio específicos
+        function createBufferFromPoint(center, radiusKm) {
+            // Limpiar buffer anterior si existe
+            if (bufferLayer) {
+                map.removeLayer(bufferLayer);
+            }
+
+            // Crear el buffer con turf.js
+            const point = turf.point(center);
+            const buffered = turf.buffer(point, radiusKm, { units: 'kilometers' });
+
+            // Crear la capa de Leaflet y añadirla al mapa
+            bufferLayer = L.geoJSON(buffered, {
+                style: {
+                    color: '#3498db',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: '#3498db',
+                    fillOpacity: 0.2
+                }
+            }).addTo(map);
+
+            // Guardar como capa de análisis
+            analysisLayers.push(bufferLayer);
+
+            // Contar centros de salud dentro del buffer
+            countCentersInBuffer(buffered);
+        }
+
+        // Contar centros de salud dentro del buffer
+        function countCentersInBuffer(buffer) {
+            if (!centrosData) return;
+
+            let count = 0;
+            const centrosDentro = [];
+
+            centrosData.features.forEach(centro => {
+                const point = turf.point(centro.geometry.coordinates);
+                if (turf.booleanPointInPolygon(point, buffer)) {
+                    count++;
+                    centrosDentro.push(centro.properties.nombre);
+                }
+            });
+
+            // Mostrar resultados
+            let resultHTML = `
+        <div class="alert alert-success">
+            <strong>Resultado del buffer:</strong><br>
+            Se encontraron ${count} centros de salud dentro del área.
+        </div>
+    `;
+
+            if (count > 0) {
+                resultHTML += '<ul class="small list-group">';
+                centrosDentro.slice(0, 10).forEach(nombre => {
+                    resultHTML += `<li class="list-group-item py-1">${nombre}</li>`;
+                });
+
+                if (centrosDentro.length > 10) {
+                    resultHTML += `<li class="list-group-item py-1">Y ${centrosDentro.length - 10} más...</li>`;
+                }
+
+                resultHTML += '</ul>';
+            }
+
+            document.getElementById('resultContent').innerHTML = resultHTML;
+        }
+
+        // ----- Herramienta de Medición -----
+
+        // Toggle para la herramienta de medición
+        function toggleMeasuringTool() {
+            // Si estábamos en otro modo, salir primero
+            exitAllTools();
+
+            // Si no estamos en modo medición, activarlo
+            if (drawingMode !== 'measuring') {
+                drawingMode = 'measuring';
+                document.getElementById('measuringToolBtn').classList.add('active');
+
+                // Crear capa para líneas de medición
+                measureLineLayer = L.layerGroup().addTo(map);
+                analysisLayers.push(measureLineLayer);
+
+                // Variables para almacenar puntos
+                let points = [];
+                let polyline = null;
+
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Haz clic en diferentes puntos del mapa para medir distancias.
+                Doble clic para terminar la medición.
+            </div>
+        `;
+
+                // Configurar manejadores de eventos para el mapa
+                map.on('click', onMapClick);
+                map.on('dblclick', onMapDblClick);
+
+                function onMapClick(e) {
+                    // Añadir punto al arreglo
+                    points.push(e.latlng);
+
+                    // Añadir marcador
+                    L.circleMarker(e.latlng, {
+                        color: '#2c3e50',
+                        fillColor: '#3498db',
+                        fillOpacity: 0.5,
+                        radius: 5
+                    }).addTo(measureLineLayer);
+
+                    // Si hay más de un punto, dibujar línea
+                    if (points.length > 1) {
+                        // Eliminar línea anterior si existe
+                        if (polyline) {
+                            measureLineLayer.removeLayer(polyline);
+                        }
+
+                        // Crear nueva línea
+                        polyline = L.polyline(points, {
+                            color: '#2c3e50',
+                            weight: 3,
+                            opacity: 0.5,
+                            dashArray: '5, 10'
+                        }).addTo(measureLineLayer);
+
+                        // Calcular distancia total
+                        let totalDistance = 0;
+                        for (let i = 1; i < points.length; i++) {
+                            totalDistance += points[i - 1].distanceTo(points[i]);
+                        }
+
+                        // Mostrar distancia en metros o kilómetros
+                        let distanceText;
+                        if (totalDistance < 1000) {
+                            distanceText = `${Math.round(totalDistance)} metros`;
+                        } else {
+                            distanceText = `${(totalDistance / 1000).toFixed(2)} kilómetros`;
+                        }
+
+                        document.getElementById('resultContent').innerHTML = `
+                    <div class="alert alert-success">
+                        <strong>Distancia actual:</strong> ${distanceText}<br>
+                        <small>Doble clic para terminar la medición.</small>
+                    </div>
+                `;
+                    }
+                }
+
+                function onMapDblClick(e) {
+                    // Desactivar herramienta al hacer doble clic
+                    map.off('click', onMapClick);
+                    map.off('dblclick', onMapDblClick);
+                    drawingMode = false;
+                    document.getElementById('measuringToolBtn').classList.remove('active');
+
+                    // Evitar que el doble clic haga zoom
+                    L.DomEvent.stopPropagation(e);
+                }
+            } else {
+                // Si ya estábamos en modo medición, desactivarlo
+                drawingMode = false;
+                document.getElementById('measuringToolBtn').classList.remove('active');
+                map.off('click');
+                map.off('dblclick');
+            }
+        }
+
+        // ----- Herramienta de Contar Centros por Zona -----
+
+        // Contar centros de salud en cada zona
+        function countCentersByZone() {
+            // Asegurar que tenemos datos de zonas y centros
+            if (!zonasData || !centrosData) {
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> Primero debes cargar los datos de zonas y centros.
+            </div>
+        `;
+                return;
+            }
+
+            // Limpiar otros análisis
+            exitAllTools();
+
+            // Estructura para almacenar los conteos
+            const zonasCount = {};
+
+            // Inicializar contadores para cada zona
+            zonasData.features.forEach(zona => {
+                zonasCount[zona.properties.nombre] = {
+                    total: 0,
+                    porTipo: {}
+                };
+            });
+
+            // Contar centros en cada zona
+            centrosData.features.forEach(centro => {
+                const punto = turf.point(centro.geometry.coordinates);
+
+                zonasData.features.forEach(zona => {
+                    // Verificar si el punto está dentro del polígono
+                    if (turf.booleanPointInPolygon(punto, zona.geometry)) {
+                        zonasCount[zona.properties.nombre].total++;
+
+                        // Contar por tipo
+                        const tipo = centro.properties.tipo;
+                        if (!zonasCount[zona.properties.nombre].porTipo[tipo]) {
+                            zonasCount[zona.properties.nombre].porTipo[tipo] = 0;
+                        }
+                        zonasCount[zona.properties.nombre].porTipo[tipo]++;
+                    }
+                });
+            });
+
+            // Crear tabla de resultados
+            let resultHTML = `
+        <div class="alert alert-success">
+            <strong>Resultado del conteo por zonas:</strong>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Zona</th>
+                        <th>Total</th>
+                        <th>Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+            Object.keys(zonasCount).forEach(nombre => {
+                const datos = zonasCount[nombre];
+
+                // Solo mostrar zonas con al menos un centro
+                if (datos.total > 0) {
+                    let detallesTipos = '';
+
+                    Object.keys(datos.porTipo).forEach(tipo => {
+                        detallesTipos += `${tipo}: ${datos.porTipo[tipo]}<br>`;
+                    });
+
+                    resultHTML += `
+                <tr>
+                    <td>${nombre}</td>
+                    <td>${datos.total}</td>
+                    <td>${detallesTipos}</td>
+                </tr>
+            `;
+                }
+            });
+
+            resultHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+            document.getElementById('resultContent').innerHTML = resultHTML;
+        }
+
+        // ----- Herramienta de Cálculo de Centroides -----
+
+        // Calcular centroides de las zonas
+        function calculateCentroids() {
+            // Verificar si tenemos datos de zonas
+            if (!zonasData) {
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> Primero debes cargar los datos de zonas.
+            </div>
+        `;
+                return;
+            }
+
+            // Limpiar otros análisis
+            exitAllTools();
+
+            // Crear capa para centroides
+            const centroidLayer = L.layerGroup().addTo(map);
+            analysisLayers.push(centroidLayer);
+
+            // Calcular y añadir centroides al mapa
+            zonasData.features.forEach(zona => {
+                // Calcular centroide con turf.js
+                const centroid = turf.centerOfMass(zona.geometry);
+
+                // Crear marcador
+                const marker = L.circleMarker([
+                    centroid.geometry.coordinates[1],
+                    centroid.geometry.coordinates[0]
+                ], {
+                    color: '#9b59b6',
+                    fillColor: '#9b59b6',
+                    fillOpacity: 0.8,
+                    radius: 8
+                }).addTo(centroidLayer);
+
+                // Añadir popup con información
+                marker.bindPopup(`
+            <div class="popup-title">Centroide de ${zona.properties.nombre}</div>
+            <div class="popup-content">
+                <p><strong>Coordenadas:</strong><br>
+                Lat: ${centroid.geometry.coordinates[1].toFixed(5)}<br>
+                Lng: ${centroid.geometry.coordinates[0].toFixed(5)}</p>
+            </div>
+        `);
+            });
+
+            // Mostrar mensaje de resultados
+            document.getElementById('resultContent').innerHTML = `
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Se han calculado los centroides de ${zonasData.features.length} zonas.
+        </div>
+    `;
+        }
+
+        // ----- Herramienta de Vecinos en Radio -----
+
+        // Toggle para la herramienta de vecinos en radio
+        function toggleNeighborTool() {
+            const neighborControls = document.getElementById('neighborControls');
+            const isVisible = neighborControls.style.display !== 'none';
+
+            // Si estábamos en otro modo, salir primero
+            exitAllTools();
+
+            // Si no estamos en modo vecinos, activarlo
+            if (!isVisible) {
+                neighborControls.style.display = 'block';
+                document.getElementById('neighborRadiusBtn').classList.add('active');
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Haz clic en un centro de salud para ver sus vecinos en el radio establecido.
+            </div>
+        `;
+
+                // Activar evento para encontrar vecinos al hacer clic en marcadores
+                drawingMode = 'neighbors';
+
+                // Añadir eventos a los marcadores
+                if (centrosLayer) {
+                    centrosLayer.eachLayer(marker => {
+                        marker.on('click', findNeighbors);
+                    });
+                }
+            } else {
+                neighborControls.style.display = 'none';
+                document.getElementById('neighborRadiusBtn').classList.remove('active');
+                drawingMode = false;
+
+                // Quitar eventos de los marcadores
+                if (centrosLayer) {
+                    centrosLayer.eachLayer(marker => {
+                        marker.off('click', findNeighbors);
+                    });
+                }
+
+                // Limpiar capa de radio de vecinos
+                if (neighborRadiusLayer) {
+                    map.removeLayer(neighborRadiusLayer);
+                    neighborRadiusLayer = null;
+                }
+            }
+        }
+
+        // Actualizar el valor mostrado del radio de vecinos
+        function updateNeighborRadiusValue() {
+            const radius = document.getElementById('neighborRadius').value;
+            document.getElementById('neighborRadiusValue').textContent = radius;
+
+            // Si ya hay un marcador seleccionado, actualizar el análisis
+            if (selectedMarker && drawingMode === 'neighbors') {
+                findNeighbors({ target: selectedMarker });
+            }
+        }
+
+        // Encontrar centros vecinos en un radio específico
+        function findNeighbors(e) {
+            // Solo procesar si estamos en modo vecinos
+            if (drawingMode !== 'neighbors') return;
+
+            // Guardar marcador seleccionado
+            selectedMarker = e.target;
+            const latlng = selectedMarker.getLatLng();
+            const properties = selectedMarker.feature ? selectedMarker.feature.properties : {};
+
+            // Obtener radio en kilómetros
+            const radiusKm = parseFloat(document.getElementById('neighborRadius').value);
+
+            // Limpiar capa anterior
+            if (neighborRadiusLayer) {
+                map.removeLayer(neighborRadiusLayer);
+            }
+
+            // Crear nueva capa para análisis
+            neighborRadiusLayer = L.layerGroup().addTo(map);
+            analysisLayers.push(neighborRadiusLayer);
+
+            // Dibujar círculo de radio
+            L.circle(latlng, {
+                radius: radiusKm * 1000,  // Convertir a metros
+                color: '#e74c3c',
+                weight: 2,
+                opacity: 0.8,
+                fillColor: '#e74c3c',
+                fillOpacity: 0.1
+            }).addTo(neighborRadiusLayer);
+
+            // Crear punto turf para análisis
+            const centralPoint = turf.point([latlng.lng, latlng.lat]);
+
+            // Encontrar centros dentro del radio
+            const vecinosEncontrados = [];
+
+            if (centrosData) {
+                centrosData.features.forEach(centro => {
+                    const punto = turf.point(centro.geometry.coordinates);
+                    const distancia = turf.distance(centralPoint, punto, { units: 'kilometers' });
+
+                    // Si está dentro del radio y no es el mismo punto
+                    if (distancia <= radiusKm && distancia > 0.01) {
+                        vecinosEncontrados.push({
+                            nombre: centro.properties.nombre,
+                            tipo: centro.properties.tipo,
+                            distancia: distancia,
+                            coordinates: centro.geometry.coordinates
+                        });
+
+                        // Añadir marcador destacado al mapa
+                        L.circleMarker([
+                            centro.geometry.coordinates[1],
+                            centro.geometry.coordinates[0]
+                        ], {
+                            color: '#e74c3c',
+                            fillColor: '#e74c3c',
+                            fillOpacity: 0.5,
+                            radius: 8
+                        }).bindPopup(`
+                    <div class="popup-title">${centro.properties.nombre}</div>
+                    <div class="popup-content">
+                        <p><strong>Tipo:</strong> ${centro.properties.tipo}</p>
+                        <p><strong>Distancia:</strong> ${distancia.toFixed(2)} km</p>
+                    </div>
+                `).addTo(neighborRadiusLayer);
+
+                        // Dibujar línea al centro principal
+                        L.polyline([
+                            [latlng.lat, latlng.lng],
+                            [centro.geometry.coordinates[1], centro.geometry.coordinates[0]]
+                        ], {
+                            color: '#e74c3c',
+                            weight: 1,
+                            opacity: 0.5,
+                            dashArray: '3, 5'
+                        }).addTo(neighborRadiusLayer);
+                    }
+                });
+            }
+
+            // Ordenar por distancia
+            vecinosEncontrados.sort((a, b) => a.distancia - b.distancia);
+
+            // Mostrar resultados
+            let resultHTML = `
+        <div class="alert alert-success">
+            <strong>Centros vecinos en radio de ${radiusKm} km</strong><br>
+            <small>${properties.nombre || "Centro seleccionado"}</small>
+        </div>
+    `;
+
+            if (vecinosEncontrados.length > 0) {
+                resultHTML += `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Centro</th>
+                            <th>Tipo</th>
+                            <th>Distancia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+                vecinosEncontrados.slice(0, 10).forEach(vecino => {
+                    resultHTML += `
+                <tr>
+                    <td>${vecino.nombre}</td>
+                    <td>${vecino.tipo}</td>
+                    <td>${vecino.distancia.toFixed(2)} km</td>
+                </tr>
+            `;
+                });
+
+                if (vecinosEncontrados.length > 10) {
+                    resultHTML += `
+                <tr>
+                    <td colspan="3" class="text-center">Y ${vecinosEncontrados.length - 10} más...</td>
+                </tr>
+            `;
+                }
+
+                resultHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+            } else {
+                resultHTML += `
+            <div class="alert alert-warning">
+                No se encontraron centros vecinos en este radio.
+            </div>
+        `;
+            }
+
+            document.getElementById('resultContent').innerHTML = resultHTML;
+        }
+
+        // ----- Herramienta de Intersección de Zonas -----
+
+        // Encontrar intersecciones entre zonas
+        function findZoneIntersections() {
+            // Verificar si tenemos datos de zonas
+            if (!zonasData || zonasData.features.length < 2) {
+                document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> Se necesitan al menos dos zonas para buscar intersecciones.
+            </div>
+        `;
+                return;
+            }
+
+            // Limpiar otros análisis
+            exitAllTools();
+
+            // Crear capa para intersecciones
+            const intersectionLayer = L.layerGroup().addTo(map);
+            analysisLayers.push(intersectionLayer);
+
+            // Array para almacenar resultados
+            const intersecciones = [];
+
+            // Buscar todas las intersecciones posibles
+            for (let i = 0; i < zonasData.features.length; i++) {
+                const zona1 = zonasData.features[i];
+
+                for (let j = i + 1; j < zonasData.features.length; j++) {
+                    const zona2 = zonasData.features[j];
+
+                    try {
+                        // Calcular intersección con turf.js
+                        const intersection = turf.intersect(zona1.geometry, zona2.geometry);
+
+                        // Si hay intersección
+                        if (intersection) {
+                            // Calcular área de intersección
+                            const areaInterseccion = turf.area(intersection) / 1000000; // Convertir a km²
+
+                            // Guardar datos de la intersección
+                            intersecciones.push({
+                                zona1: zona1.properties.nombre,
+                                zona2: zona2.properties.nombre,
+                                areaKm2: areaInterseccion,
+                                geometry: intersection
+                            });
+
+                            // Añadir polígono de intersección al mapa
+                            L.geoJSON(intersection, {
+                                style: {
+                                    color: '#e74c3c',
+                                    weight: 2,
+                                    opacity: 1,
+                                    fillColor: '#e74c3c',
+                                    fillOpacity: 0.4
+                                }
+                            }).bindPopup(`
+                        <div class="popup-title">Intersección</div>
+                        <div class="popup-content">
+                            <p><strong>Entre:</strong> ${zona1.properties.nombre} y ${zona2.properties.nombre}</p>
+                            <p><strong>Área:</strong> ${areaInterseccion.toFixed(2)} km²</p>
+                        </div>
+                    `).addTo(intersectionLayer);
+                        }
+                    } catch (error) {
+                        console.error(`Error al calcular intersección entre ${zona1.properties.nombre} y ${zona2.properties.nombre}:`, error);
+                    }
+                }
+            }
+
+            // Mostrar resultados
+            let resultHTML;
+
+            if (intersecciones.length > 0) {
+                // Ordenar por área de mayor a menor
+                intersecciones.sort((a, b) => b.areaKm2 - a.areaKm2);
+
+                resultHTML = `
+            <div class="alert alert-success">
+                <strong>Intersecciones encontradas:</strong> ${intersecciones.length}
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Zonas</th>
+                            <th>Área (km²)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+                intersecciones.forEach(inter => {
+                    resultHTML += `
+                <tr>
+                    <td>${inter.zona1} y ${inter.zona2}</td>
+                    <td>${inter.areaKm2.toFixed(2)}</td>
+                </tr>
+            `;
+                });
+
+                resultHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+            } else {
+                resultHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> No se encontraron intersecciones entre las zonas.
+            </div>
+        `;
+            }
+
+            document.getElementById('resultContent').innerHTML = resultHTML;
+        }
+
+        // ----- Utilidades generales -----
+
+        // Salir de todas las herramientas de análisis
+        function exitAllTools() {
+            // Desactivar modo de dibujo
+            drawingMode = false;
+
+            // Quitar clases active de todos los botones
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Ocultar controles adicionales
+            document.getElementById('bufferControls').style.display = 'none';
+            document.getElementById('neighborControls').style.display = 'none';
+
+            // Quitar eventos del mapa
+            map.off('click');
+            map.off('dblclick');
+
+            // Quitar eventos de los marcadores para vecinos
+            if (centrosLayer) {
+                centrosLayer.eachLayer(marker => {
+                    marker.off('click', findNeighbors);
+                });
+            }
+
+            // Resetear variables
+            selectedMarker = null;
+
+            // No limpiar capas de análisis (eso lo hace clearAnalysis)
+        }
+
+        // Limpiar todas las capas de análisis
+        function clearAnalysis() {
+            // Limpiar variables de análisis
+            bufferLayer = null;
+            bufferSource = null;
+            measureLineLayer = null;
+            neighborRadiusLayer = null;
+            selectedMarker = null;
+
+            // Quitar todas las capas de análisis del mapa
+            analysisLayers.forEach(layer => {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Resetear array de capas
+            analysisLayers = [];
+
+            // Salir de todos los modos
+            exitAllTools();
+
+            // Resetear mensaje de resultados
+            updateResultsMessage();
+        }
+        // Actualizar mensaje de resultados
+        function updateResultsMessage() {
+            document.getElementById('resultContent').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Realiza un análisis o carga datos para ver resultados.
+        </div>
+    `;
+        }
+
+        // Inicializar el mapa y cargar los datos
+        initMap();
+        setupEventListeners();
+
+
+
+    </script>
+</body>
+
+</html>
