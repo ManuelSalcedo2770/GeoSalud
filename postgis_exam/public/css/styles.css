@@ -217,13 +217,20 @@ body, html {
 }
 
 /* Media queries para responsividad */
-@media (max-width: 768px) {
+@media (max-width: 576px) {
     .sidebar {
+        position: static;
+        width: 100%;
         height: auto;
-        min-height: 300px;
+        box-shadow: none;
+        padding: 10px;
     }
-    
     .map-container {
-        height: calc(100vh - 300px);
+        height: 300px;
+    }
+    .legend {
+        position: static;
+        max-width: 100%;
+        margin-top: 10px;
     }
 }
